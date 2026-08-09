@@ -13,8 +13,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://localhost:3000",
                         "https://transit-flow-gdg.netlify.app",
-                        "https://transit-flow-frontend.vercel.app"
-                )
+                        "https://transit-flow-frontend.vercel.app")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);

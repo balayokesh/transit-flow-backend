@@ -78,7 +78,7 @@ public class RouteExtractionController {
             if (locationIsAStop) {
                 System.out.println("Location '" + HARDCODED_LOCATION
                         + "' is a valid stop on route " + actualRoute + ". Submitting spotting.");
-                spottingService.processSpotting(new SpottingRequest(actualRoute, HARDCODED_LOCATION, true));
+                spottingService.processSpotting(new SpottingRequest(desiredRoute, HARDCODED_LOCATION, true));
             } else {
                 System.out.println("Location '" + HARDCODED_LOCATION
                         + "' is NOT a stop on route " + actualRoute
