@@ -34,7 +34,7 @@ public class RouteExtractionController {
     }
 
     @PostMapping(value = "/extract-route", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<RouteExtractionResponse> extractRoute(@RequestParam("image") MultipartFile image)
+    public ResponseEntity<?> extractRoute(@RequestParam("image") MultipartFile image)
             throws IOException {
         if (image == null || image.isEmpty()) {
             throw new IllegalArgumentException("Image file must not be empty");
@@ -80,12 +80,17 @@ public class RouteExtractionController {
                         + "' is a valid stop on route " + actualRoute + ". Submitting spotting.");
                 spottingService.processSpotting(new SpottingRequest(desiredRoute, HARDCODED_LOCATION, true));
             } else {
-                System.out.println("Location '" + HARDCODED_LOCATION
-                        + "' is NOT a stop on route " + actualRoute
-                        + ". Possible false upload — ignoring spotting.");
+                String errorMsg = "Spotting not created: your current location '" + HARDCODED_LOCATION
+                        + "' is not a recognised stop on route " + actualRoute
+                        + ". Please ensure you are at a valid stop before submitting.";
+                System.out.println(errorMsg);
+                return ResponseEntity.badRequest().body(errorMsg);
             }
         } catch (RouteNotFoundException e) {
-            System.out.println("Route '" + actualRoute + "' not found in the system — ignoring spotting.");
+            String errorMsg = "Spotting not created: route '" + actualRoute
+                    + "' was not found in the system. The uploaded photo may not match your location.";
+            System.out.println(errorMsg);
+            return ResponseEntity.badRequest().body(errorMsg);
         }
 
         return ResponseEntity.ok(response);
