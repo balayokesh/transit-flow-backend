@@ -45,7 +45,7 @@ TransitFlow solves a common commuter problem: **a bus displaying the changed rou
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/your-username/transit-flow-backend.git
-   cd transit-flow
+   cd transit-flow-backend
    ```
 
 2. **Set your Gemini API key:**
