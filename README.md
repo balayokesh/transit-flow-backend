@@ -26,6 +26,7 @@ TransitFlow solves a common commuter problem: **a bus displaying the changed rou
 | Language | Java 21 |
 | Framework | Spring Boot 3.3.2 |
 | AI Integration | Spring AI + Google Gemini (via OpenAI-compatible API) |
+| Tracing & Observability | Micrometer Tracing (Brave) + Zipkin UI |
 | Build Tool | Maven |
 | Container | Docker (multi-stage, Eclipse Temurin 21 Alpine) |
 | CI/CD | GitHub Actions → Render |
@@ -71,6 +72,79 @@ The application starts on **[http://localhost:8080](http://localhost:8080)**.
 docker build -t transit-flow .
 docker run -p 8080:8080 -e GEMINI_API_KEY=your_api_key_here transit-flow
 ```
+
+---
+
+## Distributed Tracing & Observability (Zipkin UI)
+
+TransitFlow uses **Micrometer Tracing** with the **Brave** bridge and **SLF4J MDC** to trace every request, spotting submission, and AI route extraction end-to-end.
+
+### How It Works
+- **Automatic Trace & Span IDs**: Every incoming HTTP request is assigned a unique `traceId` and `spanId`.
+- **MDC Correlation**: All backend log lines are automatically tagged with `[transitflow-sprint1,<traceId>,<spanId>]`.
+- **Response Headers**: The active `traceId` is returned in the `X-Request-ID` HTTP response header for client-side correlation.
+- **Visual Dashboard**: Traces and latency waterfalls are automatically reported to Zipkin.
+
+---
+
+### Step-by-Step Instructions to View Traces in Zipkin UI
+
+#### Step 1: Start the Zipkin UI Server
+
+You can run Zipkin either using the standalone Java JAR or Docker:
+
+**Option A - Run with Java (No Docker required):**
+```bash
+# If you don't already have zipkin.jar, download it:
+curl -sSL https://zipkin.io/quickstart.sh | bash -s
+
+# Run the Zipkin server:
+java -jar zipkin.jar
+```
+
+**Option B - Run with Docker:**
+```bash
+docker run -d -p 9411:9411 openzipkin/zipkin
+```
+
+Zipkin will be listening on **[http://localhost:9411](http://localhost:9411)**.
+
+---
+
+#### Step 2: Start the Backend Application
+In a separate terminal, start TransitFlow:
+```bash
+export GEMINI_API_KEY=your_api_key_here
+mvn spring-boot:run
+```
+
+---
+
+#### Step 3: Trigger an API Request
+Send a request to any endpoint, for example, a bus spotting:
+```bash
+curl -X POST http://localhost:8080/api/spottings \
+  -H "Content-Type: application/json" \
+  -i \
+  -d '{"routeNumber":"36H","location":"UKKADAM","mismatch":true}'
+```
+Notice the `X-Request-ID` in the response headers:
+```http
+HTTP/1.1 201 Created
+X-Request-ID: 6a82025575fc96bf9b32dd20ae37887e
+Content-Type: application/json
+```
+
+---
+
+#### Step 4: Open the Zipkin Tracing Dashboard
+1. Open your browser and navigate to **[http://localhost:9411](http://localhost:9411)**.
+2. Click the **"Run Query"** button on the search page to view recent request traces.
+3. Or paste your `X-Request-ID` / `traceId` directly into the search bar.
+4. Click on any trace to inspect:
+   - Visual execution timelines (waterfall chart).
+   - Controller and service layer duration.
+   - HTTP status codes, method, path, and error tags.
 
 ---
 
