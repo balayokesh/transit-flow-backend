@@ -3,6 +3,8 @@ package com.transitflow.service;
 import com.transitflow.dto.SpottingRequest;
 import com.transitflow.dto.SpottingResponse;
 import com.transitflow.model.Alert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,6 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Service
 public class SpottingService {
+
+    private static final Logger log = LoggerFactory.getLogger(SpottingService.class);
 
     private final AlertService alertService;
 
@@ -38,11 +42,20 @@ public class SpottingService {
         boolean mismatch = request.isMismatch();
 
         String spottingId = "SP-" + spottingCounter.incrementAndGet();
+        log.info("Processing spotting ID '{}': detectedRoute='{}', location='{}', mismatch={}",
+                spottingId, detectedRoute, location, mismatch);
+
         String alertId = null;
 
         if (mismatch) {
+            log.warn("Spotting mismatch detected for spotting ID '{}' (route='{}', location='{}'). Creating alert.",
+                    spottingId, detectedRoute, location);
             Alert alert = alertService.createAlert(detectedRoute, location);
             alertId = alert.getAlertId();
+            log.info("Created alert '{}' for spotting ID '{}'", alertId, spottingId);
+        } else {
+            log.info("No mismatch for spotting ID '{}' (route='{}', location='{}')",
+                    spottingId, detectedRoute, location);
         }
 
         return new SpottingResponse(

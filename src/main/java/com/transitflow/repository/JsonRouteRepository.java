@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.transitflow.model.Route;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Repository;
@@ -18,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Repository
 public class JsonRouteRepository implements RouteRepository {
+
+    private static final Logger log = LoggerFactory.getLogger(JsonRouteRepository.class);
 
     private final Map<String, Route> routes = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
@@ -35,6 +39,7 @@ public class JsonRouteRepository implements RouteRepository {
             if (datasetPath2 != null) {
                 ClassPathResource resource = new ClassPathResource(datasetPath2);
                 if (!resource.exists()) {
+                    log.error("Dataset not found on classpath: {}", datasetPath);
                     throw new IllegalStateException("Dataset not found on classpath: " + datasetPath);
                 }
                 try (InputStream is = resource.getInputStream()) {
@@ -42,11 +47,13 @@ public class JsonRouteRepository implements RouteRepository {
                     for (Route route : routeList) {
                         routes.put(route.getRouteNumber(), route);
                     }
+                    log.info("Successfully loaded {} routes from dataset '{}'", routes.size(), datasetPath);
                 }
             } else {
-                System.out.println("Dataset not found");
+                log.warn("Dataset path is null, no routes loaded");
             }
         } catch (Exception e) {
+            log.error("Failed to load dataset during startup from path '{}': {}", datasetPath, e.getMessage(), e);
             throw new IllegalStateException("Failed to load dataset during startup", e);
         }
     }

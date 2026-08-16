@@ -16,6 +16,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "https://transit-flow-frontend.vercel.app")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
+                .exposedHeaders("X-Request-ID")
                 .allowCredentials(true);
     }
 }

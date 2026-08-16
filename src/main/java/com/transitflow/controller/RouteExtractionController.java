@@ -5,6 +5,8 @@ import com.transitflow.dto.SpottingRequest;
 import com.transitflow.service.GeminiRouteExtractionService;
 import com.transitflow.service.RouteService;
 import com.transitflow.service.SpottingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,8 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/gemini")
 public class RouteExtractionController {
+
+    private static final Logger log = LoggerFactory.getLogger(RouteExtractionController.class);
 
     private static final String HARDCODED_LOCATION = "UKKADAM";
 
@@ -32,36 +36,40 @@ public class RouteExtractionController {
     public ResponseEntity<?> extractRoute(@RequestParam("image") MultipartFile image)
             throws IOException {
         if (image == null || image.isEmpty()) {
+            log.warn("Route extraction request rejected: image file is empty or null");
             throw new IllegalArgumentException("Image file must not be empty");
         }
 
         String contentType = image.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
+            log.warn("Route extraction request rejected: invalid content type '{}'", contentType);
             throw new IllegalArgumentException("Unsupported file type. Please upload an image.");
         }
 
-        System.out.println("Starting gemini ocr for image: " + image.getOriginalFilename());
+        log.info("Starting Gemini OCR for image: filename='{}', size={} bytes",
+                image.getOriginalFilename(), image.getSize());
         RouteExtractionResponse response = extractionService.extractRoute(image);
-        System.out.println("Successfully completed gemini ocr");
+        log.info("Successfully completed Gemini OCR. Result: actual='{}', desired='{}', confidence='{}'",
+                response.actualRoute(), response.desiredRoute(), response.confidence());
 
         String actualRoute = response.actualRoute();
         String desiredRoute = response.desiredRoute();
 
         // Branch 1: AI could not extract a route number from the image
         if (actualRoute == null) {
-            System.out.println("actualRoute is null — no action needed.");
+            log.info("actualRoute is null — no action needed.");
             return ResponseEntity.ok(response);
         }
 
         // Branch 2: Routes match — everything is fine
         if (actualRoute.equalsIgnoreCase(desiredRoute)) {
-            System.out.println("actualRoute (" + actualRoute + ") matches desiredRoute — no action needed.");
+            log.info("actualRoute ('{}') matches desiredRoute — no action needed.", actualRoute);
             return ResponseEntity.ok(response);
         }
 
         // Branch 3: Route mismatch
-        System.out.println("Route mismatch detected: actual=" + actualRoute
-                + ", desired=" + desiredRoute);
+        log.warn("Route mismatch detected: actual='{}', desired='{}'. Triggering spotting submission.",
+                actualRoute, desiredRoute);
         spottingService.processSpotting(new SpottingRequest(desiredRoute, HARDCODED_LOCATION, true));
 
         return ResponseEntity.ok(response);
