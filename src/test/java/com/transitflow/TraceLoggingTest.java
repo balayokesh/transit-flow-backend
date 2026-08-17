@@ -75,7 +75,9 @@ public class TraceLoggingTest {
         MvcResult result = mockMvc.perform(get("/api/routes/UNKNOWN_ROUTE_999"))
                 .andExpect(status().isNotFound())
                 .andExpect(header().exists("X-Request-ID"))
-                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.code").value("ROUTE_NOT_FOUND"))
+                .andExpect(jsonPath("$.error").value("Route 'UNKNOWN_ROUTE_999' is not found."))
+                .andExpect(jsonPath("$.timestamp").exists())
                 .andReturn();
 
         String requestId = result.getResponse().getHeader("X-Request-ID");
@@ -111,7 +113,9 @@ public class TraceLoggingTest {
                         .content(invalidPayload))
                 .andExpect(status().isBadRequest())
                 .andExpect(header().exists("X-Request-ID"))
-                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.error").exists())
+                .andExpect(jsonPath("$.timestamp").exists())
                 .andReturn();
 
         String requestId = result.getResponse().getHeader("X-Request-ID");

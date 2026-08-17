@@ -1,32 +1,54 @@
 package com.transitflow.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.Instant;
 
 public class ErrorResponse {
 
-    private int status;
     private String error;
-    private String message;
+    private String code;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant timestamp;
 
-    public ErrorResponse() {}
-
-    public ErrorResponse(int status, String error, String message) {
-        this.status = status;
-        this.error = error;
-        this.message = message;
+    public ErrorResponse() {
         this.timestamp = Instant.now();
     }
 
-    public int getStatus() { return status; }
-    public void setStatus(int status) { this.status = status; }
+    public ErrorResponse(String error, String code) {
+        this.error = error;
+        this.code = code;
+        this.timestamp = Instant.now();
+    }
 
-    public String getError() { return error; }
-    public void setError(String error) { this.error = error; }
+    public ErrorResponse(String error, String code, Instant timestamp) {
+        this.error = error;
+        this.code = code;
+        this.timestamp = timestamp;
+    }
 
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
+    public String getError() {
+        return error;
+    }
 
-    public Instant getTimestamp() { return timestamp; }
-    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public Instant getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Instant timestamp) {
+        this.timestamp = timestamp;
+    }
 }
