@@ -27,6 +27,8 @@ TransitFlow solves a common commuter problem: **a bus displaying the changed rou
 | Framework | Spring Boot 3.3.2 |
 | AI Integration | Spring AI + Google Gemini (via OpenAI-compatible API) |
 | Tracing & Observability | Micrometer Tracing (Brave) + Zipkin UI |
+| API Documentation | Springdoc OpenAPI (Swagger UI) |
+| Rate Limiting | Bucket4j |
 | Build Tool | Maven |
 | Container | Docker (multi-stage, Eclipse Temurin 21 Alpine) |
 | CI/CD | GitHub Actions → Render |
@@ -65,6 +67,9 @@ TransitFlow solves a common commuter problem: **a bus displaying the changed rou
    ```
 
 The application starts on **[http://localhost:8080](http://localhost:8080)**.
+
+- **API Documentation (Swagger UI)**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+- **OpenAPI JSON**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
 ### Running with Docker
 
